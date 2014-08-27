@@ -1,25 +1,25 @@
 require 'account_controller'
 require 'json'
+require 'open-uri'
 
 class RedmineOauthController < AccountController
   include Helpers::MailHelper
   include Helpers::Checker
-  def oauth_google
-    if Setting.plugin_redmine_omniauth_google[:oauth_authentification]
+  def oauth_ulogin
+    if Setting.plugin_redmine_omniauth_ulogin[:oauth_authentification]
       session[:back_url] = params[:back_url]
-      redirect_to oauth_client.auth_code.authorize_url(:redirect_uri => oauth_google_callback_url, :scope => scopes)
+      redirect_to oauth_client.auth_code.authorize_url(:redirect_uri => oauth_ulogin_callback_url, :scope => scopes)
     else
       password_authentication
     end
   end
 
-  def oauth_google_callback
+  def oauth_ulogin_callback
     if params[:error]
       flash[:error] = l(:notice_access_denied)
       redirect_to signin_path
     else
-      token = oauth_client.auth_code.get_token(params[:code], :redirect_uri => oauth_google_callback_url)
-      result = token.get('https://www.googleapis.com/oauth2/v1/userinfo')
+      result open('http://ulogin.ru/token.php?token=#{params[:token]}&host=do.psiconsul.ru').read
       info = JSON.parse(result.body)
       if info && info["verified_email"]
         if allowed_domain_for?(info["email"])
@@ -29,7 +29,7 @@ class RedmineOauthController < AccountController
           redirect_to signin_path
         end
       else
-        flash[:error] = l(:notice_unable_to_obtain_google_credentials)
+        flash[:error] = l(:notice_unable_to_obtain_ulogin_credentials)
         redirect_to signin_path
       end
     end
@@ -44,8 +44,8 @@ class RedmineOauthController < AccountController
       redirect_to(home_url) && return unless Setting.self_registration?
       # Create on the fly
       user.firstname, user.lastname = info["name"].split(' ') unless info['name'].nil?
-      user.firstname ||= info[:given_name]
-      user.lastname ||= info[:family_name]
+      user.firstname ||= info[:first_name]
+      user.lastname ||= info[:last_name]
       user.mail = info["email"]
       user.login = parse_email(info["email"])[:login]
       user.login ||= [user.firstname, user.lastname]*"."
@@ -90,7 +90,7 @@ class RedmineOauthController < AccountController
   end
 
   def settings
-    @settings ||= Setting.plugin_redmine_omniauth_google
+    @settings ||= Setting.plugin_redmine_omniauth_ulogin
   end
 
   def scopes
