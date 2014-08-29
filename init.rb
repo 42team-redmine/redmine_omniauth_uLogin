@@ -1,7 +1,7 @@
 require 'redmine'
-require_dependency 'redmine_omniauth_uLogin/hooks'
+require_dependency 'redmine_omniauth_ulogin/hooks'
 
-Redmine::Plugin.register :redmine_omniauth_uLogin do
+Redmine::Plugin.register :redmine_omniauth_ulogin do
   name 'Redmine Omniauth uLogin plugin'
   author 'Dmitry Kovalenok, Alexey Marochkin'
   description 'This is a plugin for Redmine registration through uLogin'
@@ -11,8 +11,7 @@ Redmine::Plugin.register :redmine_omniauth_uLogin do
 
   settings :default => {
     :client_id => "",
-    :client_secret => "",
     :oauth_autentification => false,
     :allowed_domains => ""
-  }, :partial => 'settings/uLogin_settings'
+  }, :partial => 'settings/ulogin'
 end

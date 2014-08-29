@@ -5,33 +5,44 @@ require 'open-uri'
 class RedmineOauthController < AccountController
   include Helpers::MailHelper
   include Helpers::Checker
-  def oauth_ulogin
-    if Setting.plugin_redmine_omniauth_ulogin[:oauth_authentification]
-      session[:back_url] = params[:back_url]
-      redirect_to oauth_client.auth_code.authorize_url(:redirect_uri => oauth_ulogin_callback_url, :scope => scopes)
-    else
-      password_authentication
-    end
+
+  def test_callback
+
+     #render :text => "hello<br/><br/>"
+     url = "http://ulogin.ru/token.php?token=#{params[:token]}&host=#{settings[:ulogin_host]}"
+     page_content=""
+     open(url) { |page| page_content = page.read()}
+     #render :text => "Page content is: #{page_content}"
+
+     info = JSON.parse(page_content)
+     otxt = "Page  content: #{page_content}, Network: #{info['network']}, E-mail: #{info['email']}, First name: #{info['first_name']}, Last name: #{info['last_name']}"
+     render :text => otxt
+
   end
 
   def oauth_ulogin_callback
     if params[:error]
       flash[:error] = l(:notice_access_denied)
-      redirect_to signin_path
+      #redirect_to signin_path
     else
-      result open('http://ulogin.ru/token.php?token=#{params[:token]}&host=do.psiconsul.ru').read
-      info = JSON.parse(result.body)
+
+      url = "http://ulogin.ru/token.php?token=#{params[:token]}&host=#{settings[:ulogin_host]}"
+      page_content=""
+      open(url) { |page| page_content = page.read()}
+
+      info = JSON.parse(page_content)
+
       if info && info["verified_email"]
         if allowed_domain_for?(info["email"])
           try_to_login info
-        else
+         else
           flash[:error] = l(:notice_domain_not_allowed, :domain => parse_email(info["email"])[:domain])
           redirect_to signin_path
         end
       else
         flash[:error] = l(:notice_unable_to_obtain_ulogin_credentials)
-        redirect_to signin_path
-      end
+	redirect_to signin_path
+     end
     end
   end
 
@@ -43,9 +54,9 @@ class RedmineOauthController < AccountController
       # Self-registration off
       redirect_to(home_url) && return unless Setting.self_registration?
       # Create on the fly
-      user.firstname, user.lastname = info["name"].split(' ') unless info['name'].nil?
-      user.firstname ||= info[:first_name]
-      user.lastname ||= info[:last_name]
+      #user.firstname, user.lastname = info["name"].split(' ') unless info['name'].nil?
+      user.firstname = info["first_name"]
+      user.lastname = info["last_name"]
       user.mail = info["email"]
       user.login = parse_email(info["email"])[:login]
       user.login ||= [user.firstname, user.lastname]*"."
@@ -82,18 +93,8 @@ class RedmineOauthController < AccountController
     end
   end
 
-  def oauth_client
-    @client ||= OAuth2::Client.new(settings[:client_id], settings[:client_secret],
-      :site => 'https://accounts.google.com',
-      :authorize_url => '/o/oauth2/auth',
-      :token_url => '/o/oauth2/token')
-  end
-
   def settings
     @settings ||= Setting.plugin_redmine_omniauth_ulogin
   end
 
-  def scopes
-    'https://www.googleapis.com/auth/userinfo.email https://www.googleapis.com/auth/userinfo.profile'
-  end
 end

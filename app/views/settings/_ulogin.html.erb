@@ -3,8 +3,12 @@
   <%= text_field_tag 'settings[client_id]', @settings[:client_id] %>
 </p>
 <p>
-  <label>Available domains</label>
+  <label>Available domains:</label>
   <%= text_area_tag "settings[allowed_domains]", @settings[:allowed_domains], :rows => 5 %>
+</p>
+<p>
+  <label>uLogin site:</label>
+  <%= text_field_tag "settings[ulogin_host]", @settings[:ulogin_host]  %>
 </p>
 <p>
   <label>Oauth authentification:</label>

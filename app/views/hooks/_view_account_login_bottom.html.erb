@@ -1,8 +1,14 @@
+<% require 'open-uri' %>
+
 <%= stylesheet_link_tag 'buttons', :plugin => 'redmine_omniauth_ulogin' %>
+
 
 <% if Setting.plugin_redmine_omniauth_ulogin[:oauth_authentification] %>
 
-	<script src="//ulogin.ru/js/ulogin.js"></script>
-	<div id="uLogin1" data-uloginid="<% Setting.plugin_redmine_omniauth_ulogin[:client_id] %>"></div>
+<p><span class="ulogin_label">Войти с помощью:<span></p>
+
+<script src="//ulogin.ru/js/ulogin.js"></script>
+
+<div id="uLogin<%= Setting.plugin_redmine_omniauth_ulogin[:client_id] %>" data-ulogin="display=panel;fields=first_name,last_name,sex,email;verify=1;sort=default;lang=ru;providers=vkontakte,odnoklassniki,mailru,facebook,twitter,google;hidden=yandex,livejournal,linkedin,liveid,youtube,googleplus,instagram;redirect_uri=<%= URI::encode("http://do.psiconsul.ru/oauth2callback/?authenticity_token=" + form_authenticity_token(), /\W/) %>"></div>
 
 <% end %>
