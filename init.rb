@@ -13,5 +13,5 @@ Redmine::Plugin.register :redmine_omniauth_ulogin do
     :client_id => "",
     :oauth_autentification => false,
     :allowed_domains => ""
-  }, :partial => 'settings/ulogin_settings'
+  }, :partial => 'settings/ulogin'
 end
